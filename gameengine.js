@@ -1,4 +1,14 @@
 // This game shell was happily copied from Googler Seth Ladd's "Bad Aliens" game and his Google IO talk in 2011
+let ENGINE, SOCKET, CIRCLES;
+
+window.onload = function () {
+    SOCKET = io.connect("http://24.16.255.56:8888");
+
+    SOCKET.on("load", function(data) {
+        ENGINE.load(data);
+    });
+
+};
 
 window.requestAnimFrame = (function () {
     return window.requestAnimationFrame ||
@@ -39,7 +49,32 @@ function GameEngine() {
     this.surfaceHeight = null;
 }
 
+GameEngine.prototype.load = function (theSave) {
+    let save = JSON.parse(JSON.stringify(theSave.data));
+    let circArrLength = save.circles.length;
+    this.entities = [];
+    let circBuffer = [];
+    for (let i = 0; i < circArrLength; i++) {
+        let newCircle = new Circle(this);
+        newCircle.x = save.circles[i].x;
+        newCircle.y = save.circles[i].y;
+        newCircle.visualRadius = save.circles[i].visualRadius;
+        newCircle.color = save.circles[i].color;
+        newCircle.it = save.circles[i].it;
+        newCircle.doctor = save.circles[i].doctor;
+        newCircle.veg = save.circles[i].veg;
+        newCircle.velocity = save.circles[i].velocity;
+        circBuffer.push(newCircle);
+    }
+    this.entities = circBuffer;
+    this.draw();
+    console.log(save);
+    console.log(this.entities);
+    console.log("loaded")
+};
+
 GameEngine.prototype.init = function (ctx) {
+
     this.ctx = ctx;
     this.surfaceWidth = this.ctx.canvas.width;
     this.surfaceHeight = this.ctx.canvas.height;
@@ -51,6 +86,7 @@ GameEngine.prototype.init = function (ctx) {
 GameEngine.prototype.start = function () {
     console.log("starting game");
     var that = this;
+    ENGINE = this;
     (function gameLoop() {
         that.loop();
         requestAnimFrame(gameLoop, that.ctx.canvas);
@@ -67,6 +103,29 @@ GameEngine.prototype.startInput = function () {
 
         return { x: x, y: y };
     }
+
+    var saveButton = document.getElementById("save");
+    var loadButton = document.getElementById("load");
+
+    saveButton.onclick = function () {
+        console.log("Saving");
+        console.log(that.entities);
+        CIRCLES = new TheCircles(that.entities);
+        SOCKET.emit("save",{
+            studentname: "JeremyManandic",
+            statename: "circles",
+            data: CIRCLES
+        });
+        console.log("Saved");
+        console.log(CIRCLES.circles)
+    };
+    loadButton.onclick = function () {
+        console.log("loading");
+        SOCKET.emit("load", {
+            studentname: "JeremyManandic",
+            statename: "circles"
+        });
+    };
 
     this.ctx.canvas.addEventListener("mousemove", function (e) {
         //console.log(getXandY(e));
@@ -90,6 +149,7 @@ GameEngine.prototype.startInput = function () {
         that.rightclick = getXandY(e);
         e.preventDefault();
     }, false);
+
 
     console.log('Input started');
 }

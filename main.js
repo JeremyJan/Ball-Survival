@@ -1,5 +1,34 @@
 
 // GameBoard code below
+function TheCircles(theCircles) {
+    this.circles = [];
+    let theCirclesLength = theCircles.length;
+    console.log(theCircles);
+    console.log("entering cirles for loop");
+    for (let i = 0; i < theCirclesLength; i++) {
+        //create a json for circle
+        /*
+        x, y, visualRadius, it, doctor, veg, velocity, color
+         */
+        let round = {
+            x: theCircles[i].x,
+            y: theCircles[i].y,
+            visualRadius: theCircles[i].visualRadius,
+            color: theCircles[i].color,
+            it: theCircles[i].it,
+            doctor: theCircles[i].doctor,
+            veg: theCircles[i].veg,
+            velocity: theCircles[i].velocity
+        };
+        console.log("json stringify");
+        console.log(JSON.stringify(round));
+        this.circles.push(round);
+    }
+    console.log(this.circles);
+}
+
+TheCircles.prototype = new Entity();
+TheCircles.prototype.constructor = TheCircles;
 
 function distance(a, b) {
     var dx = a.x - b.x;
@@ -13,8 +42,10 @@ function Circle(game) {
     this.visualRadius = 500;
     this.colors = ["Red", "Green", "Blue", "White"];
     this.setHealthy();
+    this.it = true;
+    this.doctor = false;
+    this.veg = false;
     Entity.call(this, game, this.radius + Math.random() * (1200 - this.radius * 2), this.radius + Math.random() * (1200 - this.radius * 2));
-
     this.velocity = { x: Math.random() * 1000, y: Math.random() * 1000 };
     var speed = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
     if (speed > maxSpeed) {
